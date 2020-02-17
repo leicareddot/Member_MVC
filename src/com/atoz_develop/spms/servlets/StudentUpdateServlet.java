@@ -19,11 +19,8 @@ public class StudentUpdateServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
             ServletContext sc = this.getServletContext();
-            Connection conn = (Connection) sc.getAttribute("conn");
-            StudentDao studentDao = new StudentDao();
-            studentDao.setConnection(conn);
 
-            req.setAttribute("student", studentDao.selectOne(req.getParameter("student_no")));
+            req.setAttribute("student", ((StudentDao) sc.getAttribute("studentDao")).selectOne(req.getParameter("student_no")));
             RequestDispatcher rd = req.getRequestDispatcher("StudentUpdateForm.jsp");
             rd.forward(req, resp);
         } catch (SQLException e) {
