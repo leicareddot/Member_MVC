@@ -1,5 +1,6 @@
 package com.atoz_develop.spms.dao;
 
+import com.atoz_develop.spms.utils.DBConnectionPool;
 import com.atoz_develop.spms.vo.Student;
 
 import java.sql.*;
@@ -8,10 +9,10 @@ import java.util.List;
 
 public class StudentDao {
 
-    Connection connection;
+    DBConnectionPool connPool;
 
-    public void setConnection(Connection connection) {
-        this.connection = connection;
+    public void setDBConnectionPool(DBConnectionPool connPool) {
+        this.connPool = connPool;
     }
 
     /**
@@ -21,11 +22,13 @@ public class StudentDao {
      * @throws SQLException
      */
     public List<Student> selectList() throws SQLException {
+        Connection connection = null;
         Statement stmt = null;
         ResultSet rs = null;
 
         List<Student> students = null;
         try {
+            connection = connPool.getConnection();
             stmt = connection.createStatement();
             rs = stmt.executeQuery(
                     "SELECT STUDENT_NO, DEPARTMENT, STUDENT_NAME, GRADE, GENDER, AGE, PHONE_NUMBER, ADDRESS " +
@@ -57,7 +60,8 @@ public class StudentDao {
             try {
                 if (rs != null) rs.close();
                 if (stmt != null) stmt.close();
-            } catch (SQLException e) {
+                if (connection != null) connPool.returnConnection(connection);
+            } catch (Exception e) {
             }
         }
     }
@@ -70,9 +74,11 @@ public class StudentDao {
      * @throws SQLException
      */
     public int insert(Student student) throws SQLException {
+        Connection connection = null;
         PreparedStatement pstmt = null;
 
         try {
+            connection = connPool.getConnection();
             pstmt = connection.prepareStatement(
                     "INSERT INTO STUDENT(STUDENT_NO, DEPARTMENT, STUDENT_NAME, GRADE, GENDER, AGE, PHONE_NUMBER, ADDRESS, PASSWORD)" +
                             " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
@@ -95,8 +101,8 @@ public class StudentDao {
         } finally {
             try {
                 if (pstmt != null) pstmt.close();
-            } catch (SQLException e) {
-            }
+                if (connection != null) connPool.returnConnection(connection);
+            } catch (Exception e) { }
         }
     }
 
@@ -108,9 +114,11 @@ public class StudentDao {
      * @throws SQLException
      */
     public int delete(String studentNo) throws SQLException {
+        Connection connection = null;
         PreparedStatement pstmt = null;
 
         try {
+            connection = connPool.getConnection();
             pstmt = connection.prepareStatement(
                     "DELETE FROM STUDENT WHERE STUDENT_NO = ?"
             );
@@ -120,7 +128,8 @@ public class StudentDao {
         } finally {
             try {
                 if (pstmt != null) pstmt.close();
-            } catch (SQLException e) {
+                if (connection != null) connPool.returnConnection(connection);
+            } catch (Exception e) {
             }
         }
     }
@@ -133,10 +142,12 @@ public class StudentDao {
      * @throws SQLException
      */
     public Student selectOne(String studentNo) throws SQLException {
+        Connection connection = null;
         Statement stmt = null;
         ResultSet rs = null;
 
         try {
+            connection = connPool.getConnection();
             stmt = connection.createStatement();
             rs = stmt.executeQuery(
                     "SELECT STUDENT_NO, DEPARTMENT, STUDENT_NAME, GRADE, GENDER, AGE, PHONE_NUMBER, ADDRESS" +
@@ -160,7 +171,8 @@ public class StudentDao {
             try {
                 if (rs != null) rs.close();
                 if (stmt != null) stmt.close();
-            } catch (SQLException e) {
+                if (connection != null) connPool.returnConnection(connection);
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -174,8 +186,10 @@ public class StudentDao {
      * @throws SQLException
      */
     public int update(Student student) throws SQLException {
+        Connection connection = null;
         PreparedStatement pstmt = null;
         try {
+            connection = connPool.getConnection();
             pstmt = connection.prepareStatement(
                     "UPDATE STUDENT SET DEPARTMENT = ?, STUDENT_NAME = ?, PHONE_NUMBER = ?, ADDRESS = ? WHERE STUDENT_NO = ?"
             );
@@ -188,7 +202,8 @@ public class StudentDao {
         } finally {
             try {
                 if (pstmt != null) pstmt.close();
-            } catch (SQLException e) {
+                if (connection != null) connPool.returnConnection(connection);
+            } catch (Exception e) {
             }
         }
     }
@@ -201,11 +216,13 @@ public class StudentDao {
      * @throws SQLException
      */
     public Student exist(String studentNo, String password) throws SQLException {
+        Connection connection = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
 
         try {
             // DB에서 학생 정보 조회
+            connection = connPool.getConnection();
             pstmt = connection.prepareStatement(
                     "SELECT STUDENT_NO, STUDENT_NAME FROM STUDENT" +
                             " WHERE STUDENT_NO = ? AND PASSWORD = ?"
@@ -224,7 +241,8 @@ public class StudentDao {
             try {
                 if (rs != null) rs.close();
                 if (pstmt != null) pstmt.close();
-            } catch (SQLException e) { }
+                if (connection != null) connPool.returnConnection(connection);
+            } catch (Exception e) { }
         }
     }
 }

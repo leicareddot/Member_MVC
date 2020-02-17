@@ -20,7 +20,7 @@ public class DBConnectionPool {
         Class.forName(driver);
     }
 
-    public Connection getConnection() throws Exception {
+    public Connection getConnection() throws SQLException {
         if (connList.size() > 0) {
             Connection conn = connList.get(0);
             if(conn.isValid(10)) {

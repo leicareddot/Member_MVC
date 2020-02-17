@@ -1,27 +1,24 @@
 package com.atoz_develop.spms.listeners;
 
 import com.atoz_develop.spms.dao.StudentDao;
+import com.atoz_develop.spms.utils.DBConnectionPool;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 
 @WebListener
 public class ContextLoaderListener implements ServletContextListener {
-    Connection conn;
+    DBConnectionPool connPool;
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         ServletContext sc = sce.getServletContext();
 
         try {
-            // Connection 준비
-            Class.forName(sc.getInitParameter("driver"));
-            conn = DriverManager.getConnection(
+            connPool = new DBConnectionPool(
+                    sc.getInitParameter("driver"),
                     sc.getInitParameter("url"),
                     sc.getInitParameter("username"),
                     sc.getInitParameter("password")
@@ -29,11 +26,11 @@ public class ContextLoaderListener implements ServletContextListener {
 
             // Dao 준비
             StudentDao studentDao = new StudentDao();
-            studentDao.setConnection(conn);
+            studentDao.setDBConnectionPool(connPool);
 
             // Dao 저장
             sc.setAttribute("studentDao", studentDao);
-        } catch (ClassNotFoundException | SQLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -41,8 +38,6 @@ public class ContextLoaderListener implements ServletContextListener {
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
         // Connection 해제
-        try {
-            conn.close();
-        } catch (SQLException e) { }
+        connPool.closeAll();
     }
 }
