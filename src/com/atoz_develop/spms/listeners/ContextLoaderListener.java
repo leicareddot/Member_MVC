@@ -1,43 +1,49 @@
 package com.atoz_develop.spms.listeners;
 
 import com.atoz_develop.spms.dao.StudentDao;
-import com.atoz_develop.spms.utils.DBConnectionPool;
+import org.apache.commons.dbcp2.BasicDataSource;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
+import java.sql.SQLException;
 
 @WebListener
 public class ContextLoaderListener implements ServletContextListener {
-    DBConnectionPool connPool;
+    BasicDataSource ds;
 
+    /**
+     * 공용 자원 세팅
+     * @param sce
+     */
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         ServletContext sc = sce.getServletContext();
 
-        try {
-            connPool = new DBConnectionPool(
-                    sc.getInitParameter("driver"),
-                    sc.getInitParameter("url"),
-                    sc.getInitParameter("username"),
-                    sc.getInitParameter("password")
-            );
+        ds = new BasicDataSource();
+        ds.setDriverClassName(sc.getInitParameter("driver"));
+        ds.setUrl(sc.getInitParameter("url"));
+        ds.setUsername(sc.getInitParameter("username"));
+        ds.setPassword(sc.getInitParameter("password"));
 
-            // Dao 준비
-            StudentDao studentDao = new StudentDao();
-            studentDao.setDBConnectionPool(connPool);
+        // Dao 준비
+        StudentDao studentDao = new StudentDao();
+        studentDao.setDataSource(ds);
 
-            // Dao 저장
-            sc.setAttribute("studentDao", studentDao);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        // Dao 저장
+        sc.setAttribute("studentDao", studentDao);
     }
 
+    /**
+     * 공용 자원 해제
+     * @param sce
+     */
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
-        // Connection 해제
-        connPool.closeAll();
+        // DataSource의 모든 커넥션 해제
+        try {
+            if (ds != null) ds.close();
+        } catch (SQLException e) { }
     }
 }
